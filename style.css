@@ -1,0 +1,82 @@
+body {
+    background-color: #2e7d32;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    color: white;
+}
+
+/* Hilfsklasse zum Verstecken */
+.hidden { display: none !important; }
+
+/* --- OVERLAYS (Login & Lobby) --- */
+.overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 2000;
+}
+
+.box {
+    background: white; color: #333;
+    padding: 30px; border-radius: 10px;
+    text-align: center; min-width: 300px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.box input {
+    padding: 10px; font-size: 1.1rem; border-radius: 5px; border: 1px solid #ccc;
+    display: block; width: 80%; margin: 10px auto;
+}
+
+.box button {
+    padding: 10px 20px; font-size: 1.1rem; background: #ffeb3b; border: none;
+    border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px;
+}
+
+#player-list {
+    list-style: none; padding: 0; font-size: 1.2rem; font-weight: bold;
+    margin: 20px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee;
+}
+#player-list li { padding: 5px; border-bottom: 1px solid #eee; }
+
+/* --- SPIELFELD (Grid System) --- */
+.main-layout { display: flex; height: 100%; }
+.sidebar { width: 200px; background: rgba(0,0,0,0.3); padding: 10px; }
+.game-board {
+    flex-grow: 1; display: grid; gap: 5px; padding: 10px;
+    grid-template-columns: 80px 1fr 80px;
+    grid-template-rows: 100px 1fr 120px;
+}
+
+/* Positionen */
+.top { grid-column: 2; grid-row: 1; flex-direction: column; }
+.bottom { grid-column: 2; grid-row: 3; flex-direction: column-reverse; }
+.left { grid-column: 1; grid-row: 2; writing-mode: vertical-rl; transform: rotate(180deg); }
+.right { grid-column: 3; grid-row: 2; writing-mode: vertical-rl; }
+
+.player-area { display: flex; align-items: center; justify-content: center; position: relative; }
+.name-tag { background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 4px; font-size: 0.9rem; color: #ffeb3b; }
+
+.center-table {
+    grid-column: 2; grid-row: 2;
+    background: rgba(255,255,255,0.1); border-radius: 20px;
+    display: flex; justify-content: center; align-items: center;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+/* Karten */
+.tisch-karten { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+.cards-row { display: flex; gap: 5px; }
+.cards-column { display: flex; flex-direction: column; gap: 5px; }
+
+.karte {
+    width: 60px; height: 88px; background: white; border-radius: 5px;
+    display: flex; justify-content: center; align-items: center;
+    font-weight: bold; font-size: 18px; color: black; box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+}
+.rot { color: #d32f2f; }
+.hidden { 
+    display: none !important;
+}

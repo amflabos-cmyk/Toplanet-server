@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kartenspiel Multiplayer</title>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="login-screen" class="overlay">
+        <div class="box">
+            <h1>Willkommen</h1>
+            <input type="text" id="player-name-input" placeholder="Dein Name">
+            <button onclick="joinGame()">Beitreten</button>
+        </div>
+    </div>
+
+    <div id="lobby-screen" class="overlay hidden">
+        <div class="box">
+            <h1>Warteraum</h1>
+            <ul id="player-list"></ul>
+            <div id="lobby-status">Warte auf Mitspieler...</div>
+            <button id="start-game-btn" onclick="startGame()" class="hidden">Spiel starten</button>
+        </div>
+    </div>
+
+    <div id="game-container" class="main-layout hidden">
+        
+        <div class="sidebar">
+            <h3>Info</h3>
+            <div id="turn-info" style="color: yellow; margin-bottom: 10px;">Warte...</div>
+            <ul id="game-log"></ul>
+        </div>
+
+        <div class="game-board">
+            <div class="player-area top">
+                <div class="name-tag" id="name-top">Oben</div>
+                <div id="hand-top" class="cards-row"></div>
+            </div>
+
+            <div class="player-area left">
+                <div class="name-tag" id="name-left">Links</div>
+                <div id="hand-left" class="cards-column"></div>
+            </div>
+
+            <div class="center-table">
+                <div id="tisch-bereich" class="tisch-karten"></div>
+            </div>
+
+            <div class="player-area right">
+                <div class="name-tag" id="name-right">Rechts</div>
+                <div id="hand-right" class="cards-column"></div>
+            </div>
+
+            <div class="player-area bottom">
+                <div id="hand-bottom" class="cards-row"></div>
+                <div class="name-tag" id="name-bottom">ICH</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
