@@ -1,82 +1,108 @@
-body {
-    background-color: #2e7d32;
-    font-family: 'Segoe UI', sans-serif;
-    margin: 0;
-    height: 100vh;
-    overflow: hidden;
-    color: white;
-}
-
-/* Hilfsklasse zum Verstecken */
+body { background-color: #2e7d32; font-family: sans-serif; margin: 0; height: 100vh; overflow: hidden; color: white; user-select: none; }
 .hidden { display: none !important; }
 
-/* --- OVERLAYS (Login & Lobby) --- */
-.overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 2000;
-}
+/* Overlays */
+.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 20; }
+.box { background: white; color: #333; padding: 20px; border-radius: 8px; text-align: center; min-width: 300px; box-shadow: 0 0 20px black; }
 
-.box {
-    background: white; color: #333;
-    padding: 30px; border-radius: 10px;
-    text-align: center; min-width: 300px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-}
+/* Inputs & Buttons */
+input { padding: 10px; font-size: 1.1rem; margin: 10px; width: 80%; }
+button { padding: 10px 20px; background: #ffeb3b; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px; }
+button:hover { background: #fff59d; }
 
-.box input {
-    padding: 10px; font-size: 1.1rem; border-radius: 5px; border: 1px solid #ccc;
-    display: block; width: 80%; margin: 10px auto;
-}
-
-.box button {
-    padding: 10px 20px; font-size: 1.1rem; background: #ffeb3b; border: none;
-    border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px;
-}
-
-#player-list {
-    list-style: none; padding: 0; font-size: 1.2rem; font-weight: bold;
-    margin: 20px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee;
-}
-#player-list li { padding: 5px; border-bottom: 1px solid #eee; }
-
-/* --- SPIELFELD (Grid System) --- */
+/* Grid Layout */
 .main-layout { display: flex; height: 100%; }
-.sidebar { width: 200px; background: rgba(0,0,0,0.3); padding: 10px; }
-.game-board {
-    flex-grow: 1; display: grid; gap: 5px; padding: 10px;
-    grid-template-columns: 80px 1fr 80px;
-    grid-template-rows: 100px 1fr 120px;
+
+/* SIDEBAR (Neu gestaltet) */
+.sidebar { 
+    width: 260px; /* Breiter für Tabelle */
+    background: rgba(0,0,0,0.4); 
+    padding: 10px; 
+    display: flex; flex-direction: column; 
+    border-right: 2px solid rgba(0,0,0,0.2); 
 }
+
+.timer-box {
+    background: #d32f2f; color: white; font-weight: bold; font-size: 1.5rem;
+    padding: 10px; text-align: center; border-radius: 5px; margin-bottom: 15px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.score-container {
+    background: white; color: #333; border-radius: 5px; padding: 5px;
+    margin-bottom: 15px; overflow-y: auto; max-height: 200px;
+}
+
+#sidebar-score-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: center; }
+#sidebar-score-table th { background: #eee; border-bottom: 1px solid #ccc; }
+#sidebar-score-table td { border-bottom: 1px solid #ccc; padding: 3px; }
+#sidebar-score-table tfoot { font-weight: bold; background: #ffeb3b; }
+
+#game-log { 
+    list-style: none; padding: 0; flex-grow: 1; overflow-y: auto; 
+    font-size: 0.85rem; text-align: left; 
+    background: rgba(0,0,0,0.2); border-radius: 5px; padding: 5px;
+}
+#game-log li { margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px; }
+
+/* GAME BOARD */
+.game-board { flex-grow: 1; display: grid; grid-template-columns: 100px 1fr 100px; grid-template-rows: 120px 1fr 140px; gap: 5px; padding: 10px; }
+
+/* Areas */
+.player-area { display: flex; align-items: center; justify-content: center; position: relative; border-radius: 10px; transition: all 0.3s; }
+.name-tag { background: rgba(0,0,0,0.7); padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; color: #ffeb3b; position: absolute; z-index: 5; }
 
 /* Positionen */
 .top { grid-column: 2; grid-row: 1; flex-direction: column; }
+.top .name-tag { top: 5px; }
+
 .bottom { grid-column: 2; grid-row: 3; flex-direction: column-reverse; }
-.left { grid-column: 1; grid-row: 2; writing-mode: vertical-rl; transform: rotate(180deg); }
-.right { grid-column: 3; grid-row: 2; writing-mode: vertical-rl; }
+.bottom .name-tag { bottom: 5px; }
 
-.player-area { display: flex; align-items: center; justify-content: center; position: relative; }
-.name-tag { background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 4px; font-size: 0.9rem; color: #ffeb3b; }
+/* SEITLICHE SPIELER (Vertikal) */
+.left { grid-column: 1; grid-row: 2; flex-direction: row; }
+.left .name-tag { left: 5px; writing-mode: vertical-rl; transform: rotate(180deg); }
 
-.center-table {
-    grid-column: 2; grid-row: 2;
-    background: rgba(255,255,255,0.1); border-radius: 20px;
-    display: flex; justify-content: center; align-items: center;
-    border: 2px solid rgba(255,255,255,0.2);
-}
+.right { grid-column: 3; grid-row: 2; flex-direction: row-reverse; }
+.right .name-tag { right: 5px; writing-mode: vertical-rl; }
 
-/* Karten */
-.tisch-karten { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+/* TISCH */
+.center-table { grid-column: 2; grid-row: 2; background: rgba(255,255,255,0.1); border-radius: 20px; display: flex; justify-content: center; align-items: center; border: 2px solid rgba(255,255,255,0.2); }
+.tisch-karten { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; padding: 10px; }
+
+/* KARTEN LAYOUTS */
 .cards-row { display: flex; gap: 5px; }
-.cards-column { display: flex; flex-direction: column; gap: 5px; }
 
-.karte {
-    width: 60px; height: 88px; background: white; border-radius: 5px;
-    display: flex; justify-content: center; align-items: center;
-    font-weight: bold; font-size: 18px; color: black; box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+/* Vertikale Karten für die Seite */
+.cards-column { 
+    display: flex; 
+    flex-direction: column; /* WICHTIG: Untereinander */
+    gap: 5px; 
+    align-items: center;
 }
+/* Damit die Karten an der Seite "liegen" (quer), rotieren wir sie */
+.left .cards-column .karte { transform: rotate(90deg); margin: 10px 0; }
+.right .cards-column .karte { transform: rotate(-90deg); margin: 10px 0; }
+
+.karte { width: 60px; height: 90px; background: white; border-radius: 5px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 18px; color: black; box-shadow: 1px 1px 4px rgba(0,0,0,0.5); }
 .rot { color: #d32f2f; }
-.hidden { 
-    display: none !important;
+
+/* AKTIVER SPIELER HERVORHEBUNG */
+.active-turn {
+    background-color: rgba(0, 255, 0, 0.1);
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+    border: 2px solid #00ff00;
+}
+.active-turn .name-tag {
+    background-color: #00ff00;
+    color: black;
+    font-weight: bold;
+}
+
+/* Handy Anpassung */
+@media (max-width: 800px) {
+    .sidebar { display: none; } /* Auf Handy Sidebar ausblenden (leider kein Platz) */
+    .game-board { grid-template-columns: 50px 1fr 50px; }
+    .karte { width: 40px; height: 60px; font-size: 14px; }
+    .left .cards-column .karte, .right .cards-column .karte { margin: 5px 0; }
 }
