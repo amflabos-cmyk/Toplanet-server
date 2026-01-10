@@ -1,4 +1,10 @@
-const socket = io();
+// WICHTIG: Ersetze die URL unten mit DEINER echten Adresse von Render!
+// Das https:// muss davor stehen, aber kein Slash (/) am Ende.
+const SERVER_URL = 'https://toplanet.onrender.com/'; 
+
+const socket = io(SERVER_URL, { 
+    transports: ['websocket', 'polling'] 
+});
 let myData = null;
 let selectedIndices = [];
 let timerInterval = null;
