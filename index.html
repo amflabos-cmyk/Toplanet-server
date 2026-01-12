@@ -3,90 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kartenspiel Deluxe 2.0</title>
+    <title>Kartenspiel Deluxe 3.0</title>
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div id="login-screen" class="overlay">
+    <div id="screen-login" class="overlay">
         <div class="box">
-            <h1>Willkommen</h1>
+            <h1>Kartenspiel</h1>
             <input type="text" id="player-name-input" placeholder="Dein Name" maxlength="12">
-            <button onclick="joinGame()">Beitreten</button>
+            <button onclick="login()">Weiter</button>
         </div>
     </div>
 
-    <div id="lobby-screen" class="overlay hidden">
-        <div class="box">
-            <h1>Lobby</h1>
-            <ul id="player-list"></ul>
-            <div id="lobby-status">Warte auf Mitspieler...</div>
+    <div id="screen-menu" class="overlay hidden">
+        <div class="box wide-box">
+            <h1>Hauptmenü</h1>
+            <div class="menu-actions">
+                <button onclick="showCreateGame()">Neues Spiel erstellen</button>
+                <button onclick="playVsBot()">1 vs 1 gegen Computer</button>
+            </div>
             
-            <div id="mode-selection" class="hidden">
-                <p>Wähle Modus:</p>
-                <button onclick="startGame('1v1')">1 vs 1</button>
-                <button onclick="startGame('2v2')">2 vs 2</button>
-            </div>
-            <div id="wait-msg" class="hidden">Warte auf Host...</div>
+            <h3>Offene Spiele:</h3>
+            <ul id="room-list" class="scroll-list">
+                <li>Keine Spiele gefunden...</li>
+            </ul>
         </div>
     </div>
 
-    <div id="game-container" class="main-layout hidden">
-        
-        <div class="sidebar">
-            <div class="timer-box">
-                Zeit: <span id="timer-display">40</span>s
+    <div id="screen-create" class="overlay hidden">
+        <div class="box">
+            <h2>Spiel erstellen</h2>
+            <input type="text" id="room-name-input" placeholder="Spiel Name (z.B. Tisch 1)">
+            <div class="mode-switch">
+                <label><input type="radio" name="mode" value="1v1" checked> 1 vs 1</label>
+                <label><input type="radio" name="mode" value="2v2"> 2 vs 2</label>
+            </div>
+            <br>
+            <button onclick="createGame()">Erstellen</button>
+            <button onclick="backToMenu()" style="background:#ccc;">Zurück</button>
+        </div>
+    </div>
+
+    <div id="screen-room" class="overlay hidden">
+        <div class="box wide-box">
+            <h2 id="room-title">Warteraum</h2>
+            <div id="room-status">Warte auf Spieler...</div>
+
+            <div class="teams-container">
+                <div class="team-box" id="team-1-box">
+                    <h3>Team 1</h3>
+                    <ul id="list-team-1"></ul>
+                    <button class="small-btn" onclick="joinTeam(1)">Beitreten</button>
+                </div>
+                <div class="team-box" id="team-2-box">
+                    <h3>Team 2</h3>
+                    <ul id="list-team-2"></ul>
+                    <button class="small-btn" onclick="joinTeam(2)">Beitreten</button>
+                </div>
             </div>
 
+            <div class="room-actions">
+                <button id="btn-start-game" class="hidden" onclick="startGame()">Spiel starten</button>
+                <button onclick="leaveRoom()" style="background:#d32f2f; color:white;">Verlassen</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-game" class="main-layout hidden">
+        <div class="sidebar">
+            <div class="timer-box">Zeit: <span id="timer-display">40</span>s</div>
             <h3>Spielstand</h3>
             <div class="score-container">
                 <table id="sidebar-score-table">
-                    <thead>
-                        <tr>
-                            <th>Team 1</th>
-                            <th>Team 2</th>
-                        </tr>
-                    </thead>
-                    <tbody id="sidebar-score-body">
-                        </tbody>
-                    <tfoot>
-                        <tr>
-                            <td id="sb-total-t1">0</td>
-                            <td id="sb-total-t2">0</td>
-                        </tr>
-                    </tfoot>
+                    <thead><tr><th>Team 1</th><th>Team 2</th></tr></thead>
+                    <tbody id="sidebar-score-body"></tbody>
+                    <tfoot><tr><td id="sb-total-t1">0</td><td id="sb-total-t2">0</td></tr></tfoot>
                 </table>
             </div>
-
             <h3>Verlauf</h3>
             <ul id="game-log"></ul>
+            <button class="small-btn" style="background:#d32f2f; color:white; margin-top:10px;" onclick="leaveRoom()">Aufgeben / Menü</button>
         </div>
 
         <div class="game-board">
-            <div class="player-area top" id="area-top">
-                <div class="name-tag" id="name-top">Partner</div>
-                <div id="hand-top" class="cards-row"></div>
-            </div>
-
-            <div class="player-area left" id="area-left">
-                <div class="name-tag" id="name-left">Gegner L</div>
-                <div id="hand-left" class="cards-column"></div>
-            </div>
-
-            <div class="center-table">
-                <div id="tisch-bereich" class="tisch-karten"></div>
-            </div>
-
-            <div class="player-area right" id="area-right">
-                <div class="name-tag" id="name-right">Gegner R</div>
-                <div id="hand-right" class="cards-column"></div>
-            </div>
-
-            <div class="player-area bottom" id="area-bottom">
-                <div id="hand-bottom" class="cards-row"></div>
-                <div class="name-tag" id="name-bottom">ICH</div>
-            </div>
+            <div class="player-area top" id="area-top"><div class="name-tag" id="name-top">Partner</div><div id="hand-top" class="cards-row"></div></div>
+            <div class="player-area left" id="area-left"><div class="name-tag" id="name-left">Gegner L</div><div id="hand-left" class="cards-column"></div></div>
+            <div class="center-table"><div id="tisch-bereich" class="tisch-karten"></div></div>
+            <div class="player-area right" id="area-right"><div class="name-tag" id="name-right">Gegner R</div><div id="hand-right" class="cards-column"></div></div>
+            <div class="player-area bottom" id="area-bottom"><div id="hand-bottom" class="cards-row"></div><div class="name-tag" id="name-bottom">ICH</div></div>
         </div>
     </div>
 
