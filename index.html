@@ -3,97 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kartenspiel Deluxe 3.0</title>
+    <title>TopLanet - Kartenspiel Deluxe</title>
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Sound Toggle Button -->
+    <button id="sound-toggle" class="sound-btn" onclick="toggleSound()">
+        🔊
+    </button>
 
+    <!-- Login Screen -->
     <div id="screen-login" class="overlay">
-        <div class="box">
-            <h1>Kartenspiel</h1>
-            <input type="text" id="player-name-input" placeholder="Dein Name" maxlength="12">
-            <button onclick="login()">Weiter</button>
+        <div class="box login-box">
+            <div class="logo">
+                <h1>🎴 TopLanet</h1>
+                <p class="subtitle">Das ultimative Kartenspiel</p>
+            </div>
+            <input type="text" id="player-name-input" placeholder="Dein Name" maxlength="12" onkeypress="if(event.key==='Enter') login()">
+            <button class="btn-primary" onclick="login()">Spiel starten</button>
+            <div class="stats-preview" id="player-stats-preview"></div>
         </div>
     </div>
 
+    <!-- Main Menu -->
     <div id="screen-menu" class="overlay hidden">
-        <div class="box wide-box">
-            <h1>Hauptmenü</h1>
-            <div class="menu-actions">
-                <button onclick="showCreateGame()">Neues Spiel erstellen</button>
-                <button onclick="playVsBot()">1 vs 1 gegen Computer</button>
+        <div class="box menu-box">
+            <h1>🎮 Hauptmenü</h1>
+            <div class="player-info">
+                <span id="player-name-display"></span>
+                <button class="btn-small btn-stats" onclick="showStats()">📊 Statistiken</button>
             </div>
             
-            <h3>Offene Spiele:</h3>
-            <ul id="room-list" class="scroll-list">
-                <li>Keine Spiele gefunden...</li>
-            </ul>
+            <div class="menu-grid">
+                <button class="menu-card" onclick="showCreateGame()">
+                    <span class="card-icon">➕</span>
+                    <h3>Neues Spiel</h3>
+                    <p>Erstelle einen neuen Raum</p>
+                </button>
+                
+                <button class="menu-card" onclick="playVsBot('easy')">
+                    <span class="card-icon">🤖</span>
+                    <h3>vs Bot (Leicht)</h3>
+                    <p>Training gegen KI</p>
+                </button>
+                
+                <button class="menu-card" onclick="playVsBot('medium')">
+                    <span class="card-icon">🎯</span>
+                    <h3>vs Bot (Mittel)</h3>
+                    <p>Fordere dich heraus</p>
+                </button>
+                
+                <button class="menu-card" onclick="playVsBot('hard')">
+                    <span class="card-icon">🔥</span>
+                    <h3>vs Bot (Schwer)</h3>
+                    <p>Für Profis</p>
+                </button>
+            </div>
+            
+            <div class="room-list-section">
+                <h3>🌐 Offene Spiele</h3>
+                <ul id="room-list" class="scroll-list">
+                    <li class="empty-state">Keine Spiele gefunden...</li>
+                </ul>
+            </div>
         </div>
     </div>
 
+    <!-- Create Game Screen -->
     <div id="screen-create" class="overlay hidden">
         <div class="box">
-            <h2>Spiel erstellen</h2>
-            <input type="text" id="room-name-input" placeholder="Spiel Name (z.B. Tisch 1)">
+            <h2>🎲 Neues Spiel erstellen</h2>
+            <input type="text" id="room-name-input" placeholder="Spiel Name (z.B. Tisch 1)" onkeypress="if(event.key==='Enter') createGame()">
             <div class="mode-switch">
-                <label><input type="radio" name="mode" value="1v1" checked> 1 vs 1</label>
-                <label><input type="radio" name="mode" value="2v2"> 2 vs 2</label>
+                <label class="radio-card">
+                    <input type="radio" name="mode" value="1v1" checked>
+                    <span class="radio-content">
+                        <span class="radio-icon">👤</span>
+                        <strong>1 vs 1</strong>
+                        <small>Klassisch</small>
+                    </span>
+                </label>
+                <label class="radio-card">
+                    <input type="radio" name="mode" value="2v2">
+                    <span class="radio-content">
+                        <span class="radio-icon">👥</span>
+                        <strong>2 vs 2</strong>
+                        <small>Team-Spiel</small>
+                    </span>
+                </label>
             </div>
-            <br>
-            <button onclick="createGame()">Erstellen</button>
-            <button onclick="backToMenu()" style="background:#ccc;">Zurück</button>
+            <div class="button-group">
+                <button class="btn-primary" onclick="createGame()">Erstellen</button>
+                <button class="btn-secondary" onclick="backToMenu()">Zurück</button>
+            </div>
         </div>
     </div>
 
+    <!-- Waiting Room -->
     <div id="screen-room" class="overlay hidden">
-        <div class="box wide-box">
+        <div class="box room-box">
             <h2 id="room-title">Warteraum</h2>
-            <div id="room-status">Warte auf Spieler...</div>
+            <div class="room-code" id="room-code"></div>
+            <div id="room-status" class="status-text">Warte auf Spieler...</div>
 
             <div class="teams-container">
                 <div class="team-box" id="team-1-box">
-                    <h3>Team 1</h3>
-                    <ul id="list-team-1"></ul>
-                    <button class="small-btn" onclick="joinTeam(1)">Beitreten</button>
+                    <h3>⚔️ Team 1</h3>
+                    <ul id="list-team-1" class="team-list"></ul>
+                    <button class="btn-team" onclick="joinTeam(1)">Beitreten</button>
                 </div>
                 <div class="team-box" id="team-2-box">
-                    <h3>Team 2</h3>
-                    <ul id="list-team-2"></ul>
-                    <button class="small-btn" onclick="joinTeam(2)">Beitreten</button>
+                    <h3>🛡️ Team 2</h3>
+                    <ul id="list-team-2" class="team-list"></ul>
+                    <button class="btn-team" onclick="joinTeam(2)">Beitreten</button>
+                </div>
+            </div>
+
+            <div class="room-chat">
+                <h4>💬 Chat</h4>
+                <div id="room-chat-messages" class="chat-messages"></div>
+                <div class="chat-input-group">
+                    <input type="text" id="room-chat-input" placeholder="Nachricht..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+                    <button class="btn-send" onclick="sendChatMessage()">➤</button>
                 </div>
             </div>
 
             <div class="room-actions">
-                <button id="btn-start-game" class="hidden" onclick="startGame()">Spiel starten</button>
-                <button onclick="leaveRoom()" style="background:#d32f2f; color:white;">Verlassen</button>
+                <button id="btn-start-game" class="btn-primary hidden" onclick="startGame()">🎮 Spiel starten</button>
+                <button class="btn-danger" onclick="leaveRoom()">Verlassen</button>
             </div>
         </div>
     </div>
 
+    <!-- Game Screen -->
     <div id="screen-game" class="main-layout hidden">
         <div class="sidebar">
-            <div class="timer-box">Zeit: <span id="timer-display">40</span>s</div>
-            <h3>Spielstand</h3>
-            <div class="score-container">
-                <table id="sidebar-score-table">
-                    <thead><tr><th>Team 1</th><th>Team 2</th></tr></thead>
-                    <tbody id="sidebar-score-body"></tbody>
-                    <tfoot><tr><td id="sb-total-t1">0</td><td id="sb-total-t2">0</td></tr></tfoot>
-                </table>
+            <div class="timer-box">
+                <div class="timer-label">Zeit</div>
+                <div id="timer-display" class="timer-value">40</div>
+                <div class="timer-bar">
+                    <div id="timer-progress" class="timer-progress"></div>
+                </div>
             </div>
-            <h3>Verlauf</h3>
-            <ul id="game-log"></ul>
-            <button class="small-btn" style="background:#d32f2f; color:white; margin-top:10px;" onclick="leaveRoom()">Aufgeben / Menü</button>
+            
+            <div class="score-section">
+                <h3>📊 Spielstand</h3>
+                <div class="score-container">
+                    <table id="sidebar-score-table">
+                        <thead><tr><th>Team 1</th><th>Team 2</th></tr></thead>
+                        <tbody id="sidebar-score-body"></tbody>
+                        <tfoot><tr><td id="sb-total-t1">0</td><td id="sb-total-t2">0</td></tr></tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="log-section">
+                <h3>📜 Verlauf</h3>
+                <ul id="game-log"></ul>
+            </div>
+
+            <div class="game-chat">
+                <h4>💬</h4>
+                <div id="game-chat-messages" class="chat-messages"></div>
+                <div class="chat-input-group">
+                    <input type="text" id="game-chat-input" placeholder="Chat..." onkeypress="if(event.key==='Enter') sendGameChat()">
+                    <button class="btn-send" onclick="sendGameChat()">➤</button>
+                </div>
+            </div>
+
+            <button class="btn-danger btn-leave" onclick="confirmLeave()">Aufgeben</button>
         </div>
 
         <div class="game-board">
-            <div class="player-area top" id="area-top"><div class="name-tag" id="name-top">Partner</div><div id="hand-top" class="cards-row"></div></div>
-            <div class="player-area left" id="area-left"><div class="name-tag" id="name-left">Gegner L</div><div id="hand-left" class="cards-column"></div></div>
-            <div class="center-table"><div id="tisch-bereich" class="tisch-karten"></div></div>
-            <div class="player-area right" id="area-right"><div class="name-tag" id="name-right">Gegner R</div><div id="hand-right" class="cards-column"></div></div>
-            <div class="player-area bottom" id="area-bottom"><div id="hand-bottom" class="cards-row"></div><div class="name-tag" id="name-bottom">ICH</div></div>
+            <div class="player-area top" id="area-top">
+                <div class="name-tag" id="name-top">Partner</div>
+                <div id="hand-top" class="cards-row"></div>
+            </div>
+            
+            <div class="player-area left" id="area-left">
+                <div class="name-tag" id="name-left">Gegner L</div>
+                <div id="hand-left" class="cards-column"></div>
+            </div>
+            
+            <div class="center-table">
+                <div id="tisch-bereich" class="tisch-karten"></div>
+                <div id="table-empty-hint" class="table-hint hidden">Tisch ist leer! 🎉</div>
+            </div>
+            
+            <div class="player-area right" id="area-right">
+                <div class="name-tag" id="name-right">Gegner R</div>
+                <div id="hand-right" class="cards-column"></div>
+            </div>
+            
+            <div class="player-area bottom" id="area-bottom">
+                <div id="hand-bottom" class="cards-row"></div>
+                <div class="name-tag my-name" id="name-bottom">ICH</div>
+                <div id="action-hint" class="action-hint">Wähle eine Karte zum Spielen</div>
+            </div>
         </div>
+    </div>
+
+    <!-- Statistics Modal -->
+    <div id="modal-stats" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📊 Deine Statistiken</h2>
+                <button class="modal-close" onclick="closeStats()">✕</button>
+            </div>
+            <div class="modal-body" id="stats-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-games-played">0</div>
+                        <div class="stat-label">Spiele</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-games-won">0</div>
+                        <div class="stat-label">Siege</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-win-rate">0%</div>
+                        <div class="stat-label">Siegrate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-total-points">0</div>
+                        <div class="stat-label">Punkte</div>
+                    </div>
+                </div>
+                <button class="btn-danger" onclick="resetStats()">Statistiken zurücksetzen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connection Status -->
+    <div id="connection-status" class="connection-status hidden">
+        <span id="connection-text">Verbindung getrennt...</span>
+        <div class="connection-spinner"></div>
     </div>
 
     <script src="script.js"></script>
