@@ -128,6 +128,7 @@
                 <div id="room-chat-messages" class="chat-messages"></div>
                 <div class="chat-input-group">
                     <input type="text" id="room-chat-input" placeholder="Nachricht..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+                    <button class="btn-voice" id="btn-voice-room" onmousedown="startVoiceRecordingRoom()" onmouseup="stopVoiceRecordingRoom()" ontouchstart="startVoiceRecordingRoom()" ontouchend="stopVoiceRecordingRoom()">🎤</button>
                     <button class="btn-send" onclick="sendChatMessage()">➤</button>
                 </div>
             </div>
@@ -154,10 +155,34 @@
                 <h3>📊 Spielstand</h3>
                 <div class="score-container">
                     <table id="sidebar-score-table">
-                        <thead><tr><th>Team 1</th><th>Team 2</th></tr></thead>
+                        <thead><tr><th id="team1-header">Team 1</th><th id="team2-header">Team 2</th></tr></thead>
                         <tbody id="sidebar-score-body"></tbody>
                         <tfoot><tr><td id="sb-total-t1">0</td><td id="sb-total-t2">0</td></tr></tfoot>
                     </table>
+                </div>
+                
+                <div class="score-details" id="score-details">
+                    <h4>Letzte Runde</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">🃏 Karten</span>
+                            <span class="detail-values">
+                                <span id="detail-cards-t1">0</span> : <span id="detail-cards-t2">0</span>
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">📚 Meiste</span>
+                            <span class="detail-values">
+                                <span id="detail-most-t1">0</span> : <span id="detail-most-t2">0</span>
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">🌟 Sweeps</span>
+                            <span class="detail-values">
+                                <span id="detail-sweeps-t1">0</span> : <span id="detail-sweeps-t2">0</span>
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -171,6 +196,7 @@
                 <div id="game-chat-messages" class="chat-messages"></div>
                 <div class="chat-input-group">
                     <input type="text" id="game-chat-input" placeholder="Chat..." onkeypress="if(event.key==='Enter') sendGameChat()">
+                    <button class="btn-voice" id="btn-voice" onmousedown="startVoiceRecording()" onmouseup="stopVoiceRecording()" ontouchstart="startVoiceRecording()" ontouchend="stopVoiceRecording()">🎤</button>
                     <button class="btn-send" onclick="sendGameChat()">➤</button>
                 </div>
             </div>
@@ -201,8 +227,10 @@
             
             <div class="player-area bottom" id="area-bottom">
                 <div id="hand-bottom" class="cards-row"></div>
-                <div class="name-tag my-name" id="name-bottom">ICH</div>
-                <div id="action-hint" class="action-hint">Wähle eine Karte zum Spielen</div>
+                <div class="bottom-info">
+                    <div class="name-tag my-name" id="name-bottom">ICH</div>
+                    <div id="action-hint" class="action-hint">Wähle eine Karte zum Spielen</div>
+                </div>
             </div>
         </div>
     </div>

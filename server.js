@@ -137,6 +137,30 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('voiceMessage', (data) => {
+        const roomId = socket.roomId;
+        if (roomId && rooms[roomId]) {
+            io.to(roomId).emit('voiceMessage', {
+                sender: socket.playerName,
+                audioUrl: data.audio,
+                duration: data.duration,
+                timestamp: Date.now()
+            });
+        }
+    });
+
+    socket.on('gameVoiceMessage', (data) => {
+        const roomId = socket.roomId;
+        if (roomId && rooms[roomId] && rooms[roomId].gameActive) {
+            io.to(roomId).emit('gameVoiceMessage', {
+                sender: socket.playerName,
+                audioUrl: data.audio,
+                duration: data.duration,
+                timestamp: Date.now()
+            });
+        }
+    });
+
     // === 7. DISCONNECT ===
     socket.on('leaveRoom', () => leaveRoomLogic(socket));
     socket.on('disconnect', () => {

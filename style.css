@@ -118,6 +118,21 @@ button {
     border-radius: 8px;
 }
 
+.btn-voice {
+    padding: 8px 16px;
+    background: var(--secondary);
+    color: white;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    transition: var(--transition);
+}
+
+.btn-voice:active,
+.btn-voice.recording {
+    background: var(--danger);
+    animation: pulse 1s infinite;
+}
+
 /* === OVERLAYS & BOXES === */
 .overlay {
     position: fixed;
@@ -417,6 +432,26 @@ input[type="text"]::placeholder {
     margin-right: 5px;
 }
 
+.voice-message {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: var(--bg-light);
+    border-radius: 8px;
+    margin-top: 5px;
+}
+
+.voice-message audio {
+    flex: 1;
+    height: 30px;
+}
+
+.voice-duration {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
 .chat-input-group {
     display: flex;
     gap: 10px;
@@ -530,6 +565,50 @@ input[type="text"]::placeholder {
     font-size: 1.2rem;
 }
 
+.team-mine {
+    background: var(--secondary) !important;
+    color: white !important;
+}
+
+/* === SCORE DETAILS === */
+.score-details {
+    background: var(--bg-light);
+    padding: 15px;
+    border-radius: 12px;
+    margin-top: 15px;
+}
+
+.score-details h4 {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    color: var(--text-muted);
+}
+
+.detail-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    background: var(--bg-dark);
+    border-radius: 6px;
+}
+
+.detail-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.detail-values {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
 /* === LOG === */
 #game-log {
     list-style: none;
@@ -604,6 +683,16 @@ input[type="text"]::placeholder {
 
 .bottom { grid-column: 2; grid-row: 3; flex-direction: column-reverse; }
 .bottom .name-tag { bottom: 10px; }
+.bottom-info {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    z-index: 10;
+}
 
 .left { grid-column: 1; grid-row: 2; flex-direction: row; }
 .left .name-tag { left: 10px; writing-mode: vertical-rl; transform: rotate(180deg); }
@@ -699,13 +788,12 @@ input[type="text"]::placeholder {
 }
 
 .action-hint {
-    position: absolute;
-    bottom: 50px;
     font-size: 0.9rem;
     color: var(--text-muted);
     background: var(--bg-card);
     padding: 8px 16px;
     border-radius: 8px;
+    white-space: nowrap;
 }
 
 /* === STATISTICS MODAL === */

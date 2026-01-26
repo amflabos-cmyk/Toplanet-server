@@ -8,6 +8,10 @@ let timerInterval = null;
 let soundEnabled = true;
 let reconnecting = false;
 let playerName = '';
+let myTeam = null;
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
 
 // === STATISTICS (LocalStorage) ===
 function getStats() {
@@ -250,6 +254,16 @@ socket.on('gameChatMessage', (data) => {
     playSound('click');
 });
 
+socket.on('voiceMessage', (data) => {
+    addVoiceMessage(data, 'room-chat-messages');
+    playSound('click');
+});
+
+socket.on('gameVoiceMessage', (data) => {
+    addVoiceMessage(data, 'game-chat-messages');
+    playSound('click');
+});
+
 function addChatMessage(data, containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -257,6 +271,24 @@ function addChatMessage(data, containerId) {
     const msg = document.createElement('div');
     msg.className = 'chat-message';
     msg.innerHTML = `<span class="sender">${data.sender}:</span>${data.message}`;
+    container.appendChild(msg);
+    container.scrollTop = container.scrollHeight;
+}
+
+function addVoiceMessage(data, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const msg = document.createElement('div');
+    msg.className = 'chat-message';
+    msg.innerHTML = `
+        <span class="sender">${data.sender}:</span>
+        <div class="voice-message">
+            <span>🎤</span>
+            <audio controls src="${data.audioUrl}"></audio>
+            <span class="voice-duration">${data.duration}s</span>
+        </div>
+    `;
     container.appendChild(msg);
     container.scrollTop = container.scrollHeight;
 }
@@ -281,11 +313,109 @@ function sendGameChat() {
     }
 }
 
+// === VOICE RECORDING ===
+async function startVoiceRecording() {
+    if (isRecording) return;
+    
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const reader = new FileReader();
+            reader.readAsDataURL(audioBlob);
+            reader.onloadend = () => {
+                const base64Audio = reader.result;
+                const duration = Math.round(audioChunks.length / 10); // Approximation
+                socket.emit('gameVoiceMessage', { audio: base64Audio, duration });
+            };
+            
+            stream.getTracks().forEach(track => track.stop());
+        };
+        
+        mediaRecorder.start();
+        isRecording = true;
+        document.getElementById('btn-voice').classList.add('recording');
+        playSound('click');
+    } catch (err) {
+        console.error('Mikrofon-Zugriff verweigert:', err);
+        alert('Bitte erlaube den Zugriff auf dein Mikrofon für Sprachnachrichten.');
+    }
+}
+
+function stopVoiceRecording() {
+    if (!isRecording || !mediaRecorder) return;
+    
+    mediaRecorder.stop();
+    isRecording = false;
+    document.getElementById('btn-voice').classList.remove('recording');
+    playSound('card');
+}
+
+async function startVoiceRecordingRoom() {
+    if (isRecording) return;
+    
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const reader = new FileReader();
+            reader.readAsDataURL(audioBlob);
+            reader.onloadend = () => {
+                const base64Audio = reader.result;
+                const duration = Math.round(audioChunks.length / 10);
+                socket.emit('voiceMessage', { audio: base64Audio, duration });
+            };
+            
+            stream.getTracks().forEach(track => track.stop());
+        };
+        
+        mediaRecorder.start();
+        isRecording = true;
+        document.getElementById('btn-voice-room').classList.add('recording');
+        playSound('click');
+    } catch (err) {
+        console.error('Mikrofon-Zugriff verweigert:', err);
+        alert('Bitte erlaube den Zugriff auf dein Mikrofon für Sprachnachrichten.');
+    }
+}
+
+function stopVoiceRecordingRoom() {
+    if (!isRecording || !mediaRecorder) return;
+    
+    mediaRecorder.stop();
+    isRecording = false;
+    document.getElementById('btn-voice-room').classList.remove('recording');
+    playSound('card');
+}
+
 // === 4. GAME ===
 socket.on('gameState', (data) => {
     myData = data;
     selectedIndices = [];
+    
+    // Bestimme mein Team
+    if (data.playersView && data.playersView[0]) {
+        myTeam = data.playersView[0].team;
+    }
+    
     showScreen('screen-game');
+    
+    // Update Team Headers
+    updateTeamHeaders();
     
     renderTable(data.table);
     renderHand(data.myHand);
@@ -470,19 +600,59 @@ function updateScoreBoard(history, totals) {
     const tbody = document.getElementById('sidebar-score-body');
     tbody.innerHTML = '';
     
-    if (history) {
-        history.forEach(m => {
+    if (history && history.length > 0) {
+        // Zeige nur die letzten 5 Runden
+        const recentHistory = history.slice(-5);
+        
+        recentHistory.forEach(m => {
             let t1 = m.t1_tisch + m.t1_add + m.t1_pts;
             let t2 = m.t2_tisch + m.t2_add + m.t2_pts;
             let tr = document.createElement('tr');
             tr.innerHTML = `<td>${t1}</td><td>${t2}</td>`;
             tbody.appendChild(tr);
         });
+        
+        // Update Detail-Ansicht mit letzter Runde
+        const lastMatch = history[history.length - 1];
+        updateScoreDetails(lastMatch);
     }
     
     if (totals) {
         document.getElementById('sb-total-t1').innerText = totals.team1;
         document.getElementById('sb-total-t2').innerText = totals.team2;
+    }
+}
+
+function updateScoreDetails(match) {
+    if (!match) return;
+    
+    // Karten-Punkte
+    document.getElementById('detail-cards-t1').innerText = match.t1_pts;
+    document.getElementById('detail-cards-t2').innerText = match.t2_pts;
+    
+    // Meiste Karten
+    document.getElementById('detail-most-t1').innerText = match.t1_add;
+    document.getElementById('detail-most-t2').innerText = match.t2_add;
+    
+    // Sweeps
+    document.getElementById('detail-sweeps-t1').innerText = match.t1_tisch;
+    document.getElementById('detail-sweeps-t2').innerText = match.t2_tisch;
+}
+
+function updateTeamHeaders() {
+    const t1Header = document.getElementById('team1-header');
+    const t2Header = document.getElementById('team2-header');
+    
+    if (myTeam === 1) {
+        t1Header.innerHTML = 'Mein Team ⭐';
+        t1Header.classList.add('team-mine');
+        t2Header.innerHTML = 'Gegner';
+        t2Header.classList.remove('team-mine');
+    } else if (myTeam === 2) {
+        t2Header.innerHTML = 'Mein Team ⭐';
+        t2Header.classList.add('team-mine');
+        t1Header.innerHTML = 'Gegner';
+        t1Header.classList.remove('team-mine');
     }
 }
 
